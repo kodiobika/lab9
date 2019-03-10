@@ -86,27 +86,27 @@ pencil on paper, rather than typing them in.
 Exercise 4. Carry out the derivation for the semantics of the
 expression 8 - 2.
 ....................................................................*)
-8 - 2 =>
+(* 8 - 2 =>
   | 8 => 8
   | 2 => 2
-    => 6
+    => 6 *)
 (*....................................................................
 Exercise 5. Carry out the derivation for the semantics of the
 expression 6 * 6.
 ....................................................................*)
-6 * 6 =>
+(* 6 * 6 =>
   | 6 => 6
   | 6 => 6
-    => 36
+    => 36 *)
 (*....................................................................
 Exercise 6. What is the result of the following substitution according
 to the definition in Figure 13.3?
 
     (x * x) [x |-> 6]
 ....................................................................*)
-(x * x) [x |-> 6]
+(* (x * x) [x |-> 6]
   = x [x |-> 6] * x [x |-> 6]
-    = 6 * 6
+    = 6 * 6 *)
 (*....................................................................
 Exercise 7. The set of 10 equations defining substitution in Figure 13.3
 is missing an equation for function application. You'll need this
@@ -114,38 +114,38 @@ equation in some exercises below. What should such an equation look
 like? (Below, we'll refer to this as Eq. 11.)
 ....................................................................*)
 
-(*    (P R)[x |-> Q] = P[x |-> Q]  R[x |-> Q]
+(*    (P R)[x |-> Q] = P[x |-> Q]  R[x |-> Q] *)
 (*....................................................................
 Exercise 8. What is the result of the following substitution according
 to the definition in Figure 13.3?
 
     ((fun x -> x * x) (x - 2)) [x |-> 8]
 ....................................................................*)
-((fun x -> x * x) (x - 2)) [x |-> 8]
+(* ((fun x -> x * x) (x - 2)) [x |-> 8]
         = ((fun x -> x * x) [x |-> 8]) ((x - 2) [x |-> 8])
         = (fun x -> x * x) (x [x |-> 8] - 2 [x |-> 8])
-        = (fun x -> x * x) (8 - 2)
+        = (fun x -> x * x) (8 - 2) *)
 (*....................................................................
 Exercise 9. Carry out the derivation for the semantics of the
 expression
 
     (fun x -> x * x) (8 - 2)
 ....................................................................*)
-(fun x -> x * x) (8 - 2) =>
+(* (fun x -> x * x) (8 - 2) =>
          | fun x -> x + x => fun x -> x + x
          | 8 - 2 => 6
          | 6 * 6 => 36
-         => 36
+         => 36 *)
 (*....................................................................
 Exercise 10. Finally, carry out the derivation for the semantics of the
 expression
 
-    let x = 3 + 5 in (fun x -> x * x) (x - 2)
+    (* let x = 3 + 5 in (fun x -> x * x) (x - 2) *)
 ....................................................................*)
-let x = 3 + 5 in (fun x -> x * x) (x - 2) =>
+(* let x = 3 + 5 in (fun x -> x * x) (x - 2) =>
          | 3 + 5 => 8
          | (fun x -> x * x) (8 - 2) => 36
-         => 36
+         => 36 *)
 (*====================================================================
 Part 2: Pen and paper exercises with the free variables and
 substitution definitions
