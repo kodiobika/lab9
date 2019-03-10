@@ -4,7 +4,7 @@
 
 Objective:
 
-This lab practices concepts of substitution semantics. 
+This lab practices concepts of substitution semantics.
 
  *)
 
@@ -66,7 +66,7 @@ to the definition in Figure 13.3?
 
 (*....................................................................
 Exercise 3. Carry out the derivation for the semantics of the
-expression let x = 3 in x + 5. 
+expression let x = 3 in x + 5.
 ....................................................................*)
 
 (* ANSWER:
@@ -86,19 +86,27 @@ pencil on paper, rather than typing them in.
 Exercise 4. Carry out the derivation for the semantics of the
 expression 8 - 2.
 ....................................................................*)
-
+8 - 2 =>
+       | 8 => 8
+       | 2 => 2
+       => 6
 (*....................................................................
 Exercise 5. Carry out the derivation for the semantics of the
 expression 6 * 6.
 ....................................................................*)
-
+6 * 6 =>
+          | 6 => 6
+          | 6 => 6
+          => 36
 (*....................................................................
 Exercise 6. What is the result of the following substitution according
-to the definition in Figure 13.3?  
+to the definition in Figure 13.3?
 
     (x * x) [x |-> 6]
 ....................................................................*)
-
+(x * x) [x |-> 6]
+        = x [x |-> 6] * x [x |-> 6]
+        = 6 * 6
 (*....................................................................
 Exercise 7. The set of 10 equations defining substitution in Figure 13.3
 is missing an equation for function application. You'll need this
@@ -106,31 +114,41 @@ equation in some exercises below. What should such an equation look
 like? (Below, we'll refer to this as Eq. 11.)
 ....................................................................*)
 
-(*    (P R)[x |-> Q] = ????    *)
+(*    (P R)[x |-> Q] = P[x |-> Q]  R[x |-> Q]
 (*....................................................................
 Exercise 8. What is the result of the following substitution according
 to the definition in Figure 13.3?
 
     ((fun x -> x * x) (x - 2)) [x |-> 8]
 ....................................................................*)
-
+((fun x -> x * x) (x - 2)) [x |-> 8]
+        = ((fun x -> x * x) [x |-> 8]) ((x - 2) [x |-> 8])
+        = (fun x -> x * x) (x [x |-> 8] - 2 [x |-> 8])
+        = (fun x -> x * x) (8 - 2)
 (*....................................................................
 Exercise 9. Carry out the derivation for the semantics of the
 expression
 
     (fun x -> x * x) (8 - 2)
 ....................................................................*)
-
+(fun x -> x * x) (8 - 2) =>
+         | fun x -> x + x => fun x -> x + x
+         | 8 - 2 => 6
+         | 6 * 6 => 36
+         => 36
 (*....................................................................
 Exercise 10. Finally, carry out the derivation for the semantics of the
 expression
 
     let x = 3 + 5 in (fun x -> x * x) (x - 2)
 ....................................................................*)
-
+let x = 3 + 5 in (fun x -> x * x) (x - 2) =>
+         | 3 + 5 => 8
+         | (fun x -> x * x) (8 - 2) => 36
+         => 36
 (*====================================================================
 Part 2: Pen and paper exercises with the free variables and
-substitution definitions 
+substitution definitions
 
 In this part, you'll get more practice using the definitions of FV and
 substitution from the textbook (Figure 13.3). Feel free to jump ahead
@@ -157,7 +175,7 @@ Exercise 12: What expressions are specified by the following
 substitutions? Show all the steps as per the definition of
 substitution given in the textbook, Figure 13.3.
 
-1. (x + 1)[x |-> 50] 
+1. (x + 1)[x |-> 50]
 
 2. (x + 1)[y |-> 50]
 
@@ -181,9 +199,9 @@ just use it directly.
 
 2. let x = 2 * 25 in x + 1
 
-3. let x = 2 in x * x 
+3. let x = 2 in x * x
 
-4. let x = 51 in let x = 124 in x 
+4. let x = 51 in let x = 124 in x
 
 ......................................................................*)
 
@@ -199,11 +217,11 @@ such a language from the textbook.
 <expr> ::= <integer>
         |  <var>
         |  <expr1> <binop> <expr>
-        |  <var> = <expr_def> in <expr_body> 
+        |  <var> = <expr_def> in <expr_body>
 
 ......................................................................
-Exercise 14: Augment the provided type definitions to allow for other 
-binary operations (at least Minus and Times) and for unary operations 
+Exercise 14: Augment the provided type definitions to allow for other
+binary operations (at least Minus and Times) and for unary operations
 (at least Negate). Hint: Don't forget to extend the type definition
 of expr to support unary operations as well.
 ....................................................................*)
@@ -211,16 +229,19 @@ of expr to support unary operations as well.
 type varspec = string ;;
 
 type binop =
-  | Plus 
+  | Plus
+  | Minus
+  | Times
   | Divide ;;
 
-type unop = 
-  | NotYetImplemented ;;
+type unop =
+  | Negate ;;
 
 type expr =
   | Int of int
   | Var of varspec
   | Binop of binop * expr * expr
+  | Unop of unop * expr
   | Let of varspec * expr * expr ;;
 
 (*....................................................................
@@ -243,17 +264,28 @@ variables in the expression
 
     let x = x + y in z * 3      :
 
-    # VarSet.elements 
-        (free_vars (Let ("x", 
+    # VarSet.elements
+        (free_vars (Let ("x",
                          Binop (Plus, Var "x", Var "y"),
                          Binop (Times, Var "z", Int 3)))) ;;
     - : Lab9_soln.VarSet.elt list = ["x"; "y"; "z"]
 ....................................................................*)
 
-module VarSet = struct end ;;
+module VarSet = Set.Make (struct
+                            type t = varspec
+                            let compare = String.compare
+                          end) ;;
 
-let free_vars (exp : expr) =
-  failwith "free_vars not implemented"
+let rec free_vars (exp : expr) : VarSet.t =
+  match exp with
+  | Var x -> VarSet.singleton x
+  | Int _ -> VarSet.empty
+  | Unop(_, arg) -> free_vars arg
+  | Binop(_, arg1, arg2) ->
+     VarSet.union (free_vars arg1) (free_vars arg2)
+  | Let(x, def, body) ->
+     VarSet.union (free_vars def) (VarSet.remove x (free_vars body))
+;;
 
 (*......................................................................
 Exercise 16: Write a function subst : expr -> varspec -> expr -> expr
@@ -281,7 +313,7 @@ y[x |-> P] = y
 You should get the following behavior:
 
     # let example = Let ("x", Binop (Plus, Var "x", Var "y"),
-                            Binop (Times, Var "z", Var "x")) ;;  
+                            Binop (Times, Var "z", Var "x")) ;;
     val example : Lab9_soln.expr =
       Let ("x", Binop (Plus, Var "x", Var "y"), Binop (Times, Var "z", Var "x"))
     # subst example "x" (Int 42) ;;
@@ -293,7 +325,18 @@ You should get the following behavior:
 ......................................................................*)
 
 let subst (exp : expr) (var_name : varspec) (repl : expr) : expr =
-  failwith "subst not implemented" ;;
+  let rec sub (exp : expr) : expr =
+    match exp with
+    | Var x ->
+       if x = var_name then repl else exp
+    | Int _ -> exp
+    | Unop(op, arg) -> Unop(op, sub arg)
+    | Binop(op, arg1, arg2) -> Binop(op, sub arg1, sub arg2)
+    | Let(x, def, body) ->
+       if x = var_name then Let(x, sub def, body)
+       else Let(x, sub def, sub body)
+  in
+  sub exp ;;
 
 (*......................................................................
 Exercise 17: Complete the eval function below. Try to implement these
@@ -305,17 +348,38 @@ incomplete) start can be found in section 13.4.2 of the textbook.
 exception UnboundVariable of string ;;
 exception IllFormed of string ;;
 
-let eval (e : expr) : expr =
-  failwith "eval not implemented"
+let binopeval (op : binop) (v1 : expr) (v2 : expr) : expr =
+  match op, v1, v2 with
+  | Plus, Int x1, Int x2 -> Int (x1 + x2)
+  | Plus, _, _ -> raise (IllFormed "can't add non-integers")
+  | Minus, Int x1, Int x2 -> Int (x1 - x2)
+  | Minus, _, _ -> raise (IllFormed "can't subtract non-integers")
+  | Times, Int x1, Int x2 -> Int (x1 * x2)
+  | Times, _, _ -> raise (IllFormed "can't multiply non-integers")
+  | Divide, Int x1, Int x2 -> Int (x1 / x2)
+  | Divide, _, _ -> raise (IllFormed "can't divide non-integers") ;;
+
+let unopeval (op : unop) (e : expr) : expr =
+  match op, e with
+  | Negate, Int x -> Int (~- x)
+  | Negate, _ -> raise (IllFormed "can't negate non-integers")
+
+let rec eval (e : expr) : expr =
+  match e with
+  | Int _ -> e
+  | Var x -> raise (UnboundVariable x)
+  | Unop (op, e1) -> unopeval op (eval e1)
+  | Binop (op, e1, e2) -> binopeval op (eval e1) (eval e2)
+  | Let (x, def, body) -> eval (subst body x (eval def)) ;;
 
 (*......................................................................
-Go ahead and test eval by evaluating some arithmetic expressions and 
+Go ahead and test eval by evaluating some arithmetic expressions and
 let bindings.
 
-For instance, try the following: 
+For instance, try the following:
 
-# eval (Let ("x", Int 6, 
-                  Let ("y", Int 3, 
+# eval (Let ("x", Int 6,
+                  Let ("y", Int 3,
                             Binop (Times, Var "x", Var "y")))) ;;
 - : expr = Int 18
 ......................................................................*)
