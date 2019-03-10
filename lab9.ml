@@ -87,17 +87,17 @@ Exercise 4. Carry out the derivation for the semantics of the
 expression 8 - 2.
 ....................................................................*)
 8 - 2 =>
-       | 8 => 8
-       | 2 => 2
-       => 6
+  | 8 => 8
+  | 2 => 2
+    => 6
 (*....................................................................
 Exercise 5. Carry out the derivation for the semantics of the
 expression 6 * 6.
 ....................................................................*)
 6 * 6 =>
-          | 6 => 6
-          | 6 => 6
-          => 36
+  | 6 => 6
+  | 6 => 6
+    => 36
 (*....................................................................
 Exercise 6. What is the result of the following substitution according
 to the definition in Figure 13.3?
@@ -105,8 +105,8 @@ to the definition in Figure 13.3?
     (x * x) [x |-> 6]
 ....................................................................*)
 (x * x) [x |-> 6]
-        = x [x |-> 6] * x [x |-> 6]
-        = 6 * 6
+  = x [x |-> 6] * x [x |-> 6]
+    = 6 * 6
 (*....................................................................
 Exercise 7. The set of 10 equations defining substitution in Figure 13.3
 is missing an equation for function application. You'll need this
